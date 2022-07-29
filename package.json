@@ -25,6 +25,7 @@
     "aws-embedded-metrics": "^2.0.5",
     "aws-sdk": "^2.1176.0",
     "constructs": "^10.0.0",
+    "esbuild": "^0.14.50",
     "source-map-support": "^0.5.21"
   }
 }

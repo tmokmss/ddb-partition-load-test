@@ -9,14 +9,14 @@ const TARGET_TABLE = process.env.TARGET_TABLE!;
 const mode = process.env.MODE!;
 
 type Event = {
-  depth: number;
+  depth?: number;
   fixedPk?: string;
+  maxDepth?: number;
 };
 
 export const handler = async (event: Event) => {
   console.log(event);
   const maxRunSeconds = 95 + Math.random() * 20;
-  return;
   const logIntervalSeconds = 30;
   const startedAt = Date.now();
   const metrics = createMetricsLogger();
@@ -26,14 +26,19 @@ export const handler = async (event: Event) => {
   let lastLoggedAt = Date.now();
   let total = 0;
   let error = 0;
-  const fixedPk = event.fixedPk ?? `PK#${Math.random().toString()}`;
+  const {
+    depth = 0,
+    maxDepth = 2, // 2**2=4で負荷掛ける
+    fixedPk = `PK#${Math.random().toString()}`,
+  } = event;
 
-  if (event.depth < 6) {
+  if (depth < maxDepth) {
     for (let i = 0; i < 2; i++) {
       await lambda
-        .invokeAsync({
+        .invoke({
           FunctionName: SELF_FUNCTION_NAME,
-          InvokeArgs: JSON.stringify({ depth: event.depth + 1, fixedPk }),
+          InvocationType: 'Event',
+          Payload: JSON.stringify({ depth: depth + 1, fixedPk, maxDepth }),
         })
         .promise();
     }
@@ -43,43 +48,19 @@ export const handler = async (event: Event) => {
   while (true) {
     total++;
     try {
-      if (mode == 'withSk') {
-        await ddb
-          .put({
-            TableName: TARGET_TABLE,
-            Item: {
-              PK: fixedPk,
-              SK: Math.random().toString(),
-              GSI: fixedPk,
-            },
-          })
-          .promise();
-      } else if (mode == 'withGsi') {
-        await ddb
-          .put({
-            TableName: TARGET_TABLE,
-            Item: {
-              PK: Math.random().toString(),
-              SK: Math.random().toString(),
-              GSI: fixedPk,
-            },
-          })
-          .promise();
-      } else {
-        // control
-        await ddb
-          .put({
-            TableName: TARGET_TABLE,
-            Item: {
-              PK: Math.random().toString(),
-              SK: Math.random().toString(),
-              GSI: fixedPk,
-            },
-          })
-          .promise();
-      }
+      await ddb
+        .put({
+          TableName: TARGET_TABLE,
+          Item: {
+            // withSk のときはPKを固定する
+            PK: mode == 'withSk' ? fixedPk : Math.random().toString(),
+            SK: Math.random().toString(),
+            GSI: fixedPk,
+          },
+        })
+        .promise();
     } catch (e) {
-      console.log(e);
+      // console.log(e);
       error += 1;
     }
 
@@ -105,11 +86,12 @@ export const handler = async (event: Event) => {
     await metrics.flush();
   }
 
+  // 処理継続
   await lambda
     .invoke({
       FunctionName: SELF_FUNCTION_NAME,
       InvocationType: 'Event',
-      Payload: JSON.stringify({ depth: event.depth + 1, fixedPk }),
+      Payload: JSON.stringify({ depth: depth + 1, fixedPk, maxDepth }),
     })
     .promise();
 };

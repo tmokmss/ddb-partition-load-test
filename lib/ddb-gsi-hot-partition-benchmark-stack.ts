@@ -8,14 +8,17 @@ export class DdbGsiHotPartitionBenchmarkStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    const withSk = new Table(this, 'WithSk', {
+    const suffix = 'Table';
+    const withSk = new Table(this, `WithSk${suffix}`, {
+      tableName: `WithSk${suffix}`,
       partitionKey: { name: 'PK', type: AttributeType.STRING },
       sortKey: { name: 'SK', type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,
       removalPolicy: RemovalPolicy.DESTROY,
     });
 
-    const withGsi = new Table(this, 'WithGsi', {
+    const withGsi = new Table(this, `WithGsi${suffix}`, {
+      tableName: `WithGsi${suffix}`,
       partitionKey: { name: 'PK', type: AttributeType.STRING },
       sortKey: { name: 'SK', type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,
@@ -27,7 +30,8 @@ export class DdbGsiHotPartitionBenchmarkStack extends Stack {
       partitionKey: { name: 'GSI', type: AttributeType.STRING },
     });
 
-    const control = new Table(this, 'Control', {
+    const control = new Table(this, `Control${suffix}`, {
+      tableName: `Control${suffix}`,
       partitionKey: { name: 'PK', type: AttributeType.STRING },
       sortKey: { name: 'SK', type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,
@@ -53,7 +57,6 @@ export class DdbGsiHotPartitionBenchmarkStack extends Stack {
       })
     );
 
-
     const withGsiHandler = new NodejsFunction(this, 'WithGsiHandler', {
       entry: 'lambda/index.ts',
       functionName: 'withGsiHandler',
@@ -67,6 +70,25 @@ export class DdbGsiHotPartitionBenchmarkStack extends Stack {
 
     withGsi.grantWriteData(withGsiHandler);
     withGsiHandler.addToRolePolicy(
+      new PolicyStatement({
+        actions: ['lambda:InvokeFunction'],
+        resources: ['*'],
+      })
+    );
+
+    const controlHandler = new NodejsFunction(this, 'ControlHandler', {
+      entry: 'lambda/index.ts',
+      functionName: 'controlHandler',
+      environment: {
+        TARGET_TABLE: control.tableName,
+        SELF_FUNCTION_NAME: 'controlHandler',
+        MODE: 'control',
+      },
+      timeout: Duration.seconds(120),
+    });
+
+    control.grantWriteData(controlHandler);
+    controlHandler.addToRolePolicy(
       new PolicyStatement({
         actions: ['lambda:InvokeFunction'],
         resources: ['*'],
