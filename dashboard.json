@@ -1,0 +1,126 @@
+{
+    "widgets": [
+        {
+            "height": 5,
+            "width": 12,
+            "y": 0,
+            "x": 0,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ "AWS/Lambda", "Invocations", "FunctionName", "withGsiHandler", { "stat": "Sum" } ],
+                    [ ".", "ConcurrentExecutions", ".", ".", { "yAxis": "right" } ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "us-east-1",
+                "stat": "Average",
+                "period": 60,
+                "yAxis": {
+                    "left": {
+                        "min": 0,
+                        "label": "Invocation",
+                        "showUnits": false
+                    },
+                    "right": {
+                        "min": 0,
+                        "showUnits": false,
+                        "label": "Concurrency"
+                    }
+                }
+            }
+        },
+        {
+            "height": 5,
+            "width": 12,
+            "y": 5,
+            "x": 0,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ { "expression": "m2/m1*100", "label": "Error ratio", "id": "e1", "yAxis": "right", "region": "us-east-1", "visible": false } ],
+                    [ "DdbHotPartitionBenchmark", "TotalWriteCount", "ServiceName", "withGsiHandler", "LogGroup", "withGsiHandler", "ServiceType", "AWS::Lambda::Function", "Mode", "withGsi", { "id": "m1" } ],
+                    [ ".", "ErrorCount", ".", ".", ".", ".", ".", ".", ".", ".", { "yAxis": "left", "id": "m2" } ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "us-east-1",
+                "stat": "Sum",
+                "period": 30,
+                "yAxis": {
+                    "left": {
+                        "min": 0
+                    }
+                }
+            }
+        },
+        {
+            "height": 5,
+            "width": 12,
+            "y": 15,
+            "x": 0,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ { "expression": "m1/PERIOD(m1)", "label": "ConsumedWriteCapacity", "id": "e1", "region": "us-east-1" } ],
+                    [ { "expression": "m4/PERIOD(m4)", "label": "ConsumedWriteCapacity(GSI)", "id": "e2", "region": "us-east-1", "visible": false } ],
+                    [ "AWS/DynamoDB", "ConsumedWriteCapacityUnits", "TableName", "WithGsiTable", { "id": "m1", "visible": false } ],
+                    [ ".", "WriteThrottleEvents", ".", ".", { "id": "m2", "yAxis": "right" } ],
+                    [ ".", ".", ".", ".", "GlobalSecondaryIndexName", "GSI", { "id": "m3", "yAxis": "right", "visible": false } ],
+                    [ ".", "ConsumedWriteCapacityUnits", ".", ".", ".", ".", { "id": "m4", "visible": false } ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "us-east-1",
+                "period": 60,
+                "stat": "Sum",
+                "title": "Consumed WCU / Throttle Events",
+                "yAxis": {
+                    "left": {
+                        "label": "WCU",
+                        "showUnits": false
+                    },
+                    "right": {
+                        "min": 0,
+                        "label": "Throttle Count",
+                        "showUnits": false
+                    }
+                }
+            }
+        },
+        {
+            "height": 5,
+            "width": 12,
+            "y": 10,
+            "x": 0,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ { "expression": "m1/PERIOD(m1)", "label": "ConsumedWriteCapacity", "id": "e1", "region": "us-east-1", "visible": false } ],
+                    [ { "expression": "m4/PERIOD(m4)", "label": "ConsumedWriteCapacity(GSI)", "id": "e2", "region": "us-east-1" } ],
+                    [ "AWS/DynamoDB", "ConsumedWriteCapacityUnits", "TableName", "WithGsiTable", { "id": "m1", "visible": false } ],
+                    [ ".", "WriteThrottleEvents", ".", ".", { "id": "m2", "yAxis": "right", "visible": false } ],
+                    [ ".", ".", ".", ".", "GlobalSecondaryIndexName", "GSI", { "id": "m3", "yAxis": "right" } ],
+                    [ ".", "ConsumedWriteCapacityUnits", ".", ".", ".", ".", { "id": "m4", "visible": false } ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "us-east-1",
+                "period": 60,
+                "stat": "Sum",
+                "title": "Consumed WCU / Throttle Events",
+                "yAxis": {
+                    "left": {
+                        "label": "WCU",
+                        "showUnits": false
+                    },
+                    "right": {
+                        "min": 0,
+                        "label": "Throttle Count",
+                        "showUnits": false
+                    }
+                }
+            }
+        }
+    ]
+}

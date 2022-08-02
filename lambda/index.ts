@@ -56,6 +56,7 @@ export const handler = async (event: Event) => {
             PK: mode == 'withSk' ? fixedPk : Math.random().toString(),
             SK: Math.random().toString(),
             GSI: fixedPk,
+            LSI: Math.random().toString(),
           },
         })
         .promise();

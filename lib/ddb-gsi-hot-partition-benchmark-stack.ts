@@ -17,6 +17,11 @@ export class DdbGsiHotPartitionBenchmarkStack extends Stack {
       removalPolicy: RemovalPolicy.DESTROY,
     });
 
+    // withSk.addLocalSecondaryIndex({
+    //   indexName: 'LSI',
+    //   sortKey: { name: 'LSI', type: AttributeType.STRING },
+    // });
+
     const withGsi = new Table(this, `WithGsi${suffix}`, {
       tableName: `WithGsi${suffix}`,
       partitionKey: { name: 'PK', type: AttributeType.STRING },
